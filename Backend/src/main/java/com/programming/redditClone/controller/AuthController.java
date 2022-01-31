@@ -20,6 +20,11 @@ public class AuthController {
     ) {
         authService.signup(registerRequest);
         return new ResponseEntity<>("User Registration successful", HttpStatus.OK);
+        // we got the return message after 10 sec which is expensive
+        // It's because after clicking on sign up in the UI :
+        // we are saving user in Db
+        // then we are contacting an external mail server to send a verification email
+        // what we can do is to send the verification email asynchronously by running this code in a different thread
     }
 
     @GetMapping("/accountVerification/{token}")
