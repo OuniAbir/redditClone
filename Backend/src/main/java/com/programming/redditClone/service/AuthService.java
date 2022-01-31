@@ -1,6 +1,7 @@
 package com.programming.redditClone.service;
 
 import com.programming.redditClone.dto.RegisterRequest;
+import com.programming.redditClone.exception.SpringRedditCloneException;
 import com.programming.redditClone.model.NotificationEmail;
 import com.programming.redditClone.model.User;
 import com.programming.redditClone.model.VerificationToken;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -32,7 +34,7 @@ public class AuthService {
 
 //        encode the password using Bcrypt Algorithm
         user.setPassword(encodePassword(registerRequest.getPassword()));
-//        initially user is not enabled, he need to ping the activation mail send just later
+//        initially user is not enabled, he needs to ping the activation mail send just later
         user.setEnabled(false);
         user.setCreatedDate(Instant.now());
         userRepository.save(user);
@@ -63,4 +65,16 @@ public class AuthService {
     }
 
 
+    public void verifyAccount(String token) {
+        Optional<VerificationToken> verificationToken = verificationTokenRepository.findByToken(token);
+        verificationToken.orElseThrow(()-> new SpringRedditCloneException("Invalid Token"));
+        fetchUserAndEnable(verificationToken.get());
+    }
+
+    @Transactional
+    void fetchUserAndEnable(VerificationToken verificationToken) {
+        User user = userRepository.findById( verificationToken.getUser().getId()).orElseThrow(()-> new SpringRedditCloneException("user not found"));
+        user.setEnabled(true);
+        userRepository.save(user);
+    }
 }
