@@ -1,7 +1,10 @@
 package com.programming.redditClone.security;
 
 import com.programming.redditClone.exception.SpringRedditCloneException;
+
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
@@ -11,9 +14,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.*;
 import java.security.cert.CertificateException;
+import java.sql.Date;
+import java.time.Instant;
+
+import static io.jsonwebtoken.Jwts.parser;
+import static java.util.Date.from;
 
 
-/* asymmetric encryption using Java keystore :
+
+/* assymetric encryption using Java keystore :
  * public key : to validate the token  /
  * private key : to sign the token*/
 
@@ -22,6 +31,7 @@ public class JwtProvider {
 
     private KeyStore keyStore;
 
+
     @PostConstruct
     public void init() {
         try {
@@ -29,7 +39,7 @@ public class JwtProvider {
             InputStream resourceAsStream = getClass().getResourceAsStream("/springblog.jks");
             keyStore.load(resourceAsStream, "secret".toCharArray());
         } catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException e) {
-            throw new SpringRedditCloneException("Exception occurred while loading keystore");
+            throw new SpringRedditCloneException("Exception occurred while loading keystore" + e);
         }
 
     }
@@ -47,7 +57,31 @@ public class JwtProvider {
         try {
             return (PrivateKey) keyStore.getKey("springblog", "secret".toCharArray());
         } catch (KeyStoreException | NoSuchAlgorithmException | UnrecoverableKeyException e) {
-            throw new SpringRedditCloneException("Exception occured while retrieving public key from keystore");
+            throw new SpringRedditCloneException("Exception occured while retrieving public key from keystore" + e);
         }
     }
+
+    public boolean validateToken(String jwt) {
+        parser().setSigningKey(getPublickey()).parseClaimsJws(jwt);
+        return true;
+    }
+
+    private PublicKey getPublickey() {
+        try {
+            return keyStore.getCertificate("springblog").getPublicKey();
+        } catch (KeyStoreException e) {
+            throw new SpringRedditCloneException("Exception occured whileretrieving public key from keystore" + e);
+        }
+    }
+
+    public String getUsernameFromJwt(String token) {
+        Claims claims = parser()
+                .setSigningKey(getPublickey())
+                .parseClaimsJws(token)
+                .getBody();
+
+        return claims.getSubject();
+    }
+
+
 }
