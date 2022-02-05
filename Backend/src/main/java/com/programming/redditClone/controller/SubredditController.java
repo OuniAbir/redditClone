@@ -22,16 +22,14 @@ public class SubredditController {
     ) {
         return ResponseEntity.status(HttpStatus.CREATED).body(subredditService.save(dto));
     }
-
+    @GetMapping("/{id}")
+    public ResponseEntity<SubredditDto> getSubredditById(@PathVariable long id) {
+        return ResponseEntity.status(HttpStatus.OK).body(subredditService.getSubredditById(id));
+    }
     @GetMapping
     public ResponseEntity<List<SubredditDto>> getAll() {
         return ResponseEntity.status(HttpStatus.OK).body(subredditService.getAll());
     }
 
-    @GetMapping("/{id")
-    public ResponseEntity<SubredditDto> getSubredditById(
-            @PathVariable long id
-    ) {
-        return ResponseEntity.status(HttpStatus.OK).body(subredditService.getSubredditById(id));
-    }
+
 }
