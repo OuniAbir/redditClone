@@ -14,15 +14,24 @@ import java.util.List;
 @RequestMapping("/api/subreddit")
 public class SubredditController {
 
-    final private SubredditService subredditService ;
+    final private SubredditService subredditService;
+
     @PostMapping
     public ResponseEntity<SubredditDto> createSubreddit(
             @RequestBody SubredditDto dto
-    ){
+    ) {
         return ResponseEntity.status(HttpStatus.CREATED).body(subredditService.save(dto));
     }
+
     @GetMapping
-    public ResponseEntity<List<SubredditDto>> getAll(){
+    public ResponseEntity<List<SubredditDto>> getAll() {
         return ResponseEntity.status(HttpStatus.OK).body(subredditService.getAll());
+    }
+
+    @GetMapping("/{id")
+    public ResponseEntity<SubredditDto> getSubredditById(
+            @PathVariable long id
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body(subredditService.getSubredditById(id));
     }
 }
